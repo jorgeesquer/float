@@ -42,7 +42,7 @@ Dictionary<string, string> routeParams
 Dictionary<string, string> bodyParams
 
 // The active context request object.
-HttpRequest request)
+HttpRequest request
 ```
 
 Just return ```object``` and whatever is returned will be JSON serialized.

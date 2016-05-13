@@ -52,3 +52,5 @@ If you need to reply with a HTTP status code other than 200, you can use the ```
 ```c#
 throw new FloatException(404);
 ```
+
+If not status code is given in the constructor, or another exception is thrown, a general 500 server error is given.

@@ -46,3 +46,9 @@ HttpRequest request)
 ```
 
 Just return ```object``` and whatever is returned will be JSON serialized.
+
+If you need to reply with a HTTP status code other than 200, you can use the ```FloatException``` object with the status code as constructor parameter, like so:
+
+```c#
+throw new FloatException(404);
+```

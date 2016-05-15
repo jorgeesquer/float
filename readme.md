@@ -120,10 +120,23 @@ There are two ways to add middleware functions, while registering a route or glo
 To add a global middleware function, use the following:
 
 ```c#
-FloatEngine.RouteHandler.AddMiddleware(MyClass.MyGlobalMiddleware);
+FloatEngine.RouteHandler.AddGlobalMiddleware(MyClass.MyGlobalMiddleware);
 ```
 
 Beware, global middleware will be called before every route functions and their local middleware.
+
+
+## <a name="headers"></a>Headers
+
+There are two ways to add custom headers to the response, globally, or locally for each request.
+
+To globally add a header, which will be included in every response.
+
+```c#
+FloatEngine.RouteHandler.AddGlobalHeader("key", "value");
+```
+
+The ```RouteWrapper``` contains a ```NameValueCollection``` called ```ResponseHeaders``` which can be manipulated at any time during the request life, both in any middleware and the main route function. These headers will be added to the response in the end.
 
 
 ## <a name="routewrapper"></a>RouteWrapper
@@ -131,12 +144,13 @@ Beware, global middleware will be called before every route functions and their 
 The ```RouteWrapper``` object is the object passed to all the middleware function as well as the main route function. It contains the following properties:
 
 * RouteUrl (```string```) - The dynamic URL that matched the request URL.
-* RequestURL (```string```) - The actual request URL.
+* RequestUrl (```string```) - The actual request URL.
+* RequestUrlSections (```string[]```) - Request URL divided into sections.
 * HttpMethod (```HttpMethod```) - The HTTP method for the request.
 * RouteParams (```Dictionary<string, string>```) - A list of variables from the route and their value.
 * BodyParams (```Dictionary<string, string>```) - A list of posted variables and their value.
-* RequestHeaders (```Dictionary<string, string>```) - A list of all headers from the request.
-* ResponseHeaders (```Dictionary<string, string>```) - A list of headers to be added to the response. This list can be manipulated throughout the life of the request.
+* RequestHeaders (```NameValueCollection```) - A list of all headers from the request.
+* ResponseHeaders (```NameValueCollection```) - A list of headers to be added to the response. This list can be manipulated throughout the life of the request.
 * ResponseStatusCode (```int```) - If you wish to set a specific HTTP status code for the response.
 * RequestObject (```HttpRequest```) - The actual ASPx request object. Just in case Float doesn't provide all necessary info and handlers for your needs.
 * ResponseObject (```HttpResponse```) - The actual ASPx response object. Just in case Float doesn't provide all necessary info and handlers for your needs.

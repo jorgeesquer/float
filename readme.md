@@ -2,7 +2,7 @@
 
 A simplistic C# ASP.NET route handler with dynamic URLs and middleware capabilities.
 
-I created this framework mostly as a means to easily setup an API routing with minimal hassle, but it can easily be used for normal webpage route/rendering too. It was written as a replacement for the ASPx website default route handler, but might work with ASPx webapp's too, I'm not sure.
+I created this framework mostly as a means to easily setup a RESTful API with minimal hassle, but it can easily be used for normal webpage route/rendering too. It was written as a replacement for the ASPx website default route handler, but might work with ASPx webapp's too, I'm not sure.
 
 Topics:
 
@@ -28,9 +28,9 @@ FloatEngine.RouteHandler.RegisterRoute(
 	MyClass.MyGetAllUsersFunction);
 ```
 
-This will make a GET request to ```/api/user``` go to ```MyClass.MyGetAllUsersFunction``` to be handled. Anything returned from that function will, by default, by serialized to JSON and returned to the client.
+This will make a GET request to ```/api/user``` go to ```MyClass.MyGetAllUsersFunction``` to be handled. Anything returned from that function will, by default, be serialized to JSON and returned to the client.
 
-Your ```MyClass.MyGetAllUsersFunction``` must be setup to accept a single argument, the [```FloatEngine.RouteWrapper```](#objects-to-use) type, and the function must use ```object``` as return type. The [```FloatEngine.RouteWrapper```](#objects-to-use) provides everything you need to know about the request, as well as means to manipulate the response.
+Your ```MyClass.MyGetAllUsersFunction``` must be setup to accept a single argument, the [```FloatEngine.RouteWrapper```](#objects-to-use) type, and the function defaults to ```object``` as return type. The [```FloatEngine.RouteWrapper```](#objects-to-use) provides everything you need to know about the request, as well as means to manipulate the response.
 
 A simple ```MyClass.MyGetAllUsersFunction``` might look like this:
 
@@ -73,7 +73,6 @@ You can add more arguments to the ```RegisterRoute``` function to flesh out your
 * ```Func<RouteWrapper, object>``` The function to call when the route is requested.
 * ```Dictionary<string, string>``` A dictionary list of variables from the route and their regex validator strings. (Optional)
 * ```List<Action<RouteWrapper>>``` A list of middleware functions to execute, in order, before the main call. (Optional)
-* ```bool``` Whether or not to accept a variable-less version of the same route in the GET request. If you add ```api/user/{id}``` as a route URL and setting this bool to ```true``` will also accept GET calls to ```api/user```. This defaults to false.
 
 A full register will look something like this:
 
@@ -90,16 +89,14 @@ FloatEngine.RouteHandler.RegisterRoute(
 	new List<Action<RouteWrapper>> {
 		MyClass.MyFirstMiddleware,
 		MyClass.MySecondMiddleware
-	},
-	true);
+	});
 ```
 
-* This call will add four routes:
-	* GET to ```/api/user```
+* This call will add three routes:
 	* GET to ```/api/user/{id}```
 	* POST to ```/api/user/{id}```
 	* DELETE to ```/api/user/{id}```
-* For the three requests that include the ```id``` part of the route, it will validate it against the ```@"\d"``` regex.
+* The ```id``` part of the route will validate against the ```@"\d"``` regex.
 * It will first execute the ```MyFirstMiddleware``` function, and if that's successful, the second ```MySecondMiddleware``` function, and if that's successfull, finally the ```MyUserHandleFunction``` function.
 
 
@@ -116,9 +113,9 @@ This will send all requests that the ASPx engine picks up and route them to the 
 
 ## <a name="middleware"></a>Middleware
 
-Middleware functions are functions that have access to the request object and the response object. It's meant for various handling before the main function, like authorization and the like. The functions are ```void``` as their not meant to return anything. They can however throw errors which will be handled by the framework the returned to the client.
+Middleware functions are functions that have access to the request object and the response object. It's meant for various handling before the main function, like authorization and the like. The functions are ```void``` as their not meant to return anything. They can however throw errors which will be handled by the framework then returned to the client.
 
-There are two ways to add middleware functions, while registering a route, or globally. To add it while registering a route, just use the middleware argument in the ```RegisterRoute``` function.
+There are two ways to add middleware functions, while registering a route or globally. To add it while registering a route, just use the middleware argument in the ```RegisterRoute``` function.
 
 To add a global middleware function, use the following:
 
@@ -126,7 +123,7 @@ To add a global middleware function, use the following:
 FloatEngine.RouteHandler.AddMiddleware(MyClass.MyGlobalMiddleware);
 ```
 
-Beware, this function will be called before every route functions and their local middleware.
+Beware, global middleware will be called before every route functions and their local middleware.
 
 
 ## <a name="routewrapper"></a>RouteWrapper
@@ -141,15 +138,15 @@ The ```RouteWrapper``` object is the object passed to all the middleware functio
 * RequestHeaders (```Dictionary<string, string>```) - A list of all headers from the request.
 * ResponseHeaders (```Dictionary<string, string>```) - A list of headers to be added to the response. This list can be manipulated throughout the life of the request.
 * ResponseStatusCode (```int```) - If you wish to set a specific HTTP status code for the response.
-* RequestObject (```HttpRequest```) - The actual ASPx request object. Just in case Float doesn't provide all needed info and handlers for your needs.
-* ResponseObject (```HttpResponse```) - The actual ASPx response object. Just in case Float doesn't provide all needed info and handlers for your needs.
+* RequestObject (```HttpRequest```) - The actual ASPx request object. Just in case Float doesn't provide all necessary info and handlers for your needs.
+* ResponseObject (```HttpResponse```) - The actual ASPx response object. Just in case Float doesn't provide all necessary info and handlers for your needs.
 
 
 ## <a name="exception-handling"></a>Exception Handling
 
 If an unhandled exception is thrown anywhere in the Float framework it ends the entire request life and responds with a 500 Server Error. The point of this is so you can terminate the entire request life inside any of the middleware functions, or the main function without having to implement any logic for it.
 
-To respond with anything else than 500 for an error, you can use the ```FloatException```. ```FloatException``` is just a normal Exception object with an added property, ```HttpStatusCode```, an int, which can be set in the constructor.
+To respond with anything else than 500 for an error, you can use the ```FloatException```. ```FloatException``` is just a normal Exception object with a few added properties, one of which is ```HttpStatusCode```, an int, which can be set in the constructor.
 
 ```c#
 throw new FloatException(404);
@@ -191,7 +188,7 @@ There are two ways to get a different HTTP status code than 200 when responding.
 
 ## <a name="how-to-make-a-response-other-than-json"></a>How to Make a Response Other Than JSON
 
-When you return something in the main route function it will by default automatically be serialized to JSON and returned to the client. If you wish to output in some other format, f.eks: HTML, you can override this by setting the ```FloatEngine.Options.SerializeToJSON``` to ```false```, and the ```FloatEnging.Options.DefaultContentType``` to ```text/html```. What you return in the main route function will now be served right to the client with ```text/html``` as the content-type.
+When you return something in the main route function it will by default be serialized to JSON and returned to the client. If you wish to output in some other format, f.eks: HTML, you can override this by setting the ```FloatEngine.Options.SerializeToJSON``` to ```false```, and the ```FloatEnging.Options.DefaultContentType``` to ```text/html```. What you return in the main route function will now be served right to the client with ```text/html``` as the content-type.
 
 
 ## <a name="settings-in-web-config"></a>Settings in Web.config
@@ -215,7 +212,7 @@ This will turn off custom error and allow the error data provided by the Float f
 
 ---
 
-By default the ASPx engine only allows GET and POST, which is a but lacking if you're developing a RESTful API. To enable more HTTP methods, use the following settings.
+By default the ASPx engine only allows GET and POST, which is a bit lacking if you're developing a RESTful API. To enable more HTTP methods, use the following settings.
 
 ```xml
 <configuration>

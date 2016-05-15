@@ -9,6 +9,7 @@ Topics:
 * [How to Register Routes](#how-to-register-routes)
 * [How to Handle Routes](#how-to-handle-routes)
 * [Middleware](#middleware)
+* [Headers](#headers)
 * [RouteWrapper](#routeWrapper)
 * [Exception Handling](#exception-handling)
 * [Options](#options)
